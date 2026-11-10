@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberDash - CRUD Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-violet-500 selection:text-white">
+
+    <!-- Navbar -->
+    <header class="border-b border-violet-900/40 bg-slate-900/60 backdrop-blur sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="h-10 w-10 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+                    <i class="fa-solid fa-cube text-lg"></i>
+                </div>
+                <span class="font-bold text-xl tracking-wide bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">CyberDash</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-xs px-2.5 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300">
+                    <i class="fa-solid fa-circle text-[8px] text-emerald-400 mr-1.5 animate-pulse"></i> System Online
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Stats Overview Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div class="bg-slate-900/80 border border-violet-900/40 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 text-violet-500/5 text-8xl font-black pointer-events-none">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <p class="text-slate-400 text-sm font-medium">Total Items</p>
+                <h3 id="statTotal" class="text-3xl font-extrabold text-violet-300 mt-2">0</h3>
+            </div>
+            <div class="bg-slate-900/80 border border-violet-900/40 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 text-emerald-500/5 text-8xl font-black pointer-events-none">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <p class="text-slate-400 text-sm font-medium">Active Status</p>
+                <h3 id="statActive" class="text-3xl font-extrabold text-emerald-400 mt-2">0</h3>
+            </div>
+            <div class="bg-slate-900/80 border border-violet-900/40 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 text-fuchsia-500/5 text-8xl font-black pointer-events-none">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <p class="text-slate-400 text-sm font-medium">Total Quantity</p>
+                <h3 id="statQty" class="text-3xl font-extrabold text-fuchsia-400 mt-2">0</h3>
+            </div>
+        </div>
+
+        <!-- Controls Toolbar -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-slate-900/40 p-4 rounded-2xl border border-violet-900/30">
+            <div class="relative flex-1 max-w-md">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-search"></i>
+                </span>
+                <input type="text" id="searchInput" placeholder="Search items by name or category..." 
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-violet-900/40 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition">
+            </div>
+            <button onclick="openAddModal()" class="inline-flex items-center justify-center space-x-2 bg-violet-600 hover:bg-violet-500 text-white px-5 py-2.5 rounded-xl font-medium shadow-[0_0_20px_rgba(139,92,246,0.3)] transition cursor-pointer">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add New Item</span>
+            </button>
+        </div>
+
+        <!-- Data Table Card -->
+        <div class="bg-slate-900/80 border border-violet-900/40 rounded-2xl shadow-xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-violet-900/40 bg-slate-950/50 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                            <th class="py-4 px-6">ID</th>
+                            <th class="py-4 px-6">Name</th>
+                            <th class="py-4 px-6">Category</th>
+                            <th class="py-4 px-6">Status</th>
+                            <th class="py-4 px-6">Quantity</th>
+                            <th class="py-4 px-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemTableBody" class="divide-y divide-violet-900/20 text-sm">
+                        <!-- Dynamically Populated -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div id="itemModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm hidden">
+        <div class="bg-slate-900 border border-violet-900/50 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <h3 id="modalTitle" class="text-xl font-bold text-violet-300 mb-4">Add New Item</h3>
+            <form id="itemForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <input type="hidden" id="itemId">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Item Name</label>
+                    <input type="text" id="itemName" required placeholder="e.g., Quantum Processor"
+                        class="w-full px-4 py-2 bg-slate-950 border border-violet-900/40 rounded-xl text-slate-200 focus:outline-none focus:border-violet-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Category</label>
+                    <input type="text" id="itemCategory" required placeholder="e.g., Hardware"
+                        class="w-full px-4 py-2 bg-slate-950 border border-violet-900/40 rounded-xl text-slate-200 focus:outline-none focus:border-violet-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Status</label>
+                    <select id="itemStatus" class="w-full px-4 py-2 bg-slate-950 border border-violet-900/40 rounded-xl text-slate-200 focus:outline-none focus:border-violet-500 transition">
+                        <option value="Active">Active</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Archived">Archived</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Quantity</label>
+                    <input type="number" id="itemQuantity" required min="0" placeholder="0"
+                        class="w-full px-4 py-2 bg-slate-950 border border-violet-900/40 rounded-xl text-slate-200 focus:outline-none focus:border-violet-500 transition">
+                </div>
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-violet-900/30">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-sm font-medium bg-violet-600 hover:bg-violet-500 text-white transition cursor-pointer">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Frontend Script -->
+    <script>
+        let allItems = [];
+
+        // Fetch and Render Items on Load
+        async function fetchItems() {
+            try {
+                const response = await fetch('/api/items');
+                const result = await response.json();
+                if (result.message === 'success') {
+                    allItems = result.data;
+                    renderTable(allItems);
+                    updateStats(allItems);
+                }
+            } catch (err) {
+                console.error('Failed to fetch items:', err);
+            }
+        }
+
+        function renderTable(items) {
+            const tbody = document.getElementById('itemTableBody');
+            if (items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-500">No records found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = items.map(item => `
+                <tr class="hover:bg-violet-950/20 transition">
+                    <td class="py-4 px-6 text-slate-400 font-mono text-xs">#${item.id}</td>
+                    <td class="py-4 px-6 font-medium text-slate-200">${escapeHtml(item.name)}</td>
+                    <td class="py-4 px-6 text-slate-300">
+                        <span class="px-2.5 py-1 rounded-lg bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs">${escapeHtml(item.category)}</span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-medium ${getStatusBadge(item.status)}">${item.status}</span>
+                    </td>
+                    <td class="py-4 px-6 text-slate-300 font-mono">${item.quantity}</td>
+                    <td class="py-4 px-6 text-right space-x-2">
+                        <button onclick="openEditModal(${item.id})" class="text-violet-400 hover:text-violet-300 p-1.5 rounded-lg hover:bg-violet-500/10 transition cursor-pointer" title="Edit">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button onclick="deleteItem(${item.id})" class="text-rose-400 hover:text-rose-300 p-1.5 rounded-lg hover:bg-rose-500/10 transition cursor-pointer" title="Delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'Active': return 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400';
+                case 'Pending': return 'bg-amber-500/10 border border-amber-500/20 text-amber-400';
+                default: return 'bg-slate-500/10 border border-slate-500/20 text-slate-400';
+            }
+        }
+
+        function updateStats(items) {
+            document.getElementById('statTotal').innerText = items.length;
+            document.getElementById('statActive').innerText = items.filter(i => i.status === 'Active').length;
+            document.getElementById('statQty').innerText = items.reduce((acc, curr) => acc + curr.quantity, 0);
+        }
+
+        // Search Filter
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allItems.filter(i => 
+                i.name.toLowerCase().includes(query) || i.category.toLowerCase().includes(query)
+            );
+            renderTable(filtered);
+        });
+
+        // Modal Handlers
+        function openAddModal() {
+            document.getElementById('modalTitle').innerText = 'Add New Item';
+            document.getElementById('itemId').value = '';
+            document.getElementById('itemForm').reset();
+            document.getElementById('itemModal').classList.remove('hidden');
+        }
+
+        function openEditModal(id) {
+            const item = allItems.find(i => i.id === id);
+            if (!item) return;
+            document.getElementById('modalTitle').innerText = 'Edit Item';
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemCategory').value = item.category;
+            document.getElementById('itemStatus').value = item.status;
+            document.getElementById('itemQuantity').value = item.quantity;
+            document.getElementById('itemModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').classList.add('hidden');
+        }
+
+        // Form Submit (Create or Update)
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('itemId').value;
+            const payload = {
+                name: document.getElementById('itemName').value,
+                category: document.getElementById('itemCategory').value,
+                status: document.getElementById('itemStatus').value,
+                quantity: parseInt(document.getElementById('itemQuantity').value)
+            };
+
+            const url = id ? `/api/items/${id}` : '/api/items';
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.message === 'success') {
+                    closeModal();
+                    fetchItems();
+                } else {
+                    alert('Error saving record.');
+                }
+            } catch (err) {
+                console.error('Submission error:', err);
+            }
+        }
+
+        // Delete Item
+        async function deleteItem(id) {
+            if (!confirm('Are you sure you want to delete this record?')) return;
+            try {
+                const response = await fetch(`/api/items/${id}`, { method: 'DELETE' });
+                const result = await response.json();
+                if (result.message === 'deleted') {
+                    fetchItems();
+                }
+            } catch (err) {
+                console.error('Delete error:', err);
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // Initial Load
+        fetchItems();
+    </script>
+</body>
+</html>

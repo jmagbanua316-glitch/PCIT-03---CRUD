@@ -1,0 +1,17 @@
+{
+  "name": "dashboard-crud-app",
+  "version": "1.0.0",
+  "description": "Dashboard Application with Express and SQLite",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.3",
+    "sqlite3": "^5.1.7"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
